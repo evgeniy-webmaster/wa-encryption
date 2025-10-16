@@ -1,0 +1,28 @@
+{
+    "name": "evgeniy-webmaster/wa-encryption",
+    "description": "WhatsApp Encryption Stream Decorators",
+    "type": "library",
+    "require": {
+        "ext-openssl": "*",
+        "guzzlehttp/psr7": "^2.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "EW\\WaEncryption\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "EW\\WaEncryptionTests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Evgeniy Averyanov"
+        }
+    ]
+}
