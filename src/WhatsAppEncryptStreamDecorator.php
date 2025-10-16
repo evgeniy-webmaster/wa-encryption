@@ -7,8 +7,26 @@ namespace EW\WaEncryption;
 use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\StreamInterface;
 
+/**
+ * Class WhatsAppEncryptStreamDecorator
+ *
+ * Decorator for encrypting data streams for WhatsApp.
+ * Performs content encryption using AES-256-CBC and HMAC signature generation.
+ *
+ */
 final class WhatsAppEncryptStreamDecorator extends WhatsAppStreamDecorator
 {
+    /**
+     *
+     * @param StreamInterface $inputStream   Input stream containing data to encrypt.
+     * @param string          $encryptionKey Encryption key used for AES encryption and HMAC generation.
+     * @param string          $mediaType     Media type (e.g., WhatsAppStreamDecorator::MEDIA_TYPE_IMAGE,
+     *                                       WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO,
+     *                                       WhatsAppStreamDecorator::MEDIA_TYPE_VIDEO,
+     *                                       WhatsAppStreamDecorator::MEDIA_TYPE_DOCUMENT).
+     *
+     * @throws WhatsAppDecoratorException If encryption fails.
+     */
     public function __construct(
         private readonly StreamInterface $inputStream,
         string $encryptionKey,

@@ -48,45 +48,4 @@ final class DecoratorsTest extends TestCase
             ['IMAGE', WhatsAppStreamDecorator::MEDIA_TYPE_IMAGE],
         ];
     }
-
-    /*
-    public function testSignature()
-    {
-        $filename = 'AUDIO';
-        $mediaKeyExpanded = hash_hkdf(
-            'sha256',
-            file_get_contents(__DIR__ . "/samples/$filename.key"),
-            112,
-            'WhatsApp Audio Keys'
-        );
-
-        $iv = substr($mediaKeyExpanded, 0, 16);
-        $cipherKey = substr($mediaKeyExpanded, 16, 48 - 16);
-        $macKey = substr($mediaKeyExpanded, 48, 80 - 48);
-
-        $content = file_get_contents(__DIR__ . "/samples/$filename.encrypted");
-
-        $file = substr($content, 0, strlen($content) - 10);
-        $mac = substr($content, -10);
-
-        $sign = hash_hmac(
-            'sha256',
-            $iv . $file,
-            $macKey,
-            true
-        );
-
-        $this->assertTrue(hash_equals(substr($sign, 0, 10), $mac));
-
-        $decryptedContent = openssl_decrypt(
-            $file,
-            'aes-256-cbc',
-            $cipherKey,
-            OPENSSL_RAW_DATA,
-            $iv,
-        );
-
-        $this->assertEquals($decryptedContent, file_get_contents(__DIR__ . "/samples/$filename.original"));
-    }
-    */
 }
