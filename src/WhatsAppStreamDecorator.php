@@ -20,7 +20,9 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
     protected string $cipherKey;
     protected string $macKey;
 
+    protected string $prevBlock;
     protected string $content;
+    protected ?\HashContext $incHashContext;
 
     protected StreamInterface|null $stream;
 
@@ -39,5 +41,9 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
         $this->cipherKey = substr($mediaKeyExpanded, 16, 48 - 16);
         $this->macKey = substr($mediaKeyExpanded, 48, 80 - 48);
         //$refKey = substr($mediaKeyExpanded, 80);
+
+        $this->prevBlock = $this->iv;
+        $this->incHashContext = hash_init('sha256', HASH_HMAC, $this->macKey);
+        hash_update($this->incHashContext, $this->iv);
     }
 }
