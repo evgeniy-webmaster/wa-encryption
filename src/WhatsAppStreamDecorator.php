@@ -22,7 +22,7 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
 
     protected string $prevBlock;
     protected string $content;
-    protected ?\HashContext $incHashContext;
+    protected $incHashContext;
 
     protected StreamInterface|null $stream;
 

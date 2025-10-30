@@ -46,6 +46,24 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
         return $this->stream->eof() && strlen($this->overBuf) === 0;
     }
 
+    public function isSeekable(): bool
+    {
+        return false;
+    }
+
+    public function seek($offset, $whence = SEEK_SET): void
+    {
+        throw new \RuntimeException('Not implemented');
+    }
+
+    public function rewind(): void
+    {
+        $this->stream->rewind();
+        $this->prevBlock = $this->iv;
+        $this->incHashContext = hash_init('sha256', HASH_HMAC, $this->macKey);
+        hash_update($this->incHashContext, $this->iv);
+    }
+
     public function read($length): string
     {
         $obLen = strlen($this->overBuf);
