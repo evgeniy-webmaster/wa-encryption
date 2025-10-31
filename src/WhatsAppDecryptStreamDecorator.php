@@ -35,8 +35,6 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
         parent::__construct($this->inputStream, $encryptionKey, $mediaType);
 
         $this->stream = $inputStream;
-
-        //$this->decodeContent();
     }
 
     private string $overBuf = '';
@@ -140,7 +138,7 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
         return $buf;
     }
 
-    function removePkcs7Padding(string $data): string {
+    private function removePkcs7Padding(string $data): string {
         $len = strlen($data);
         $padLen = ord($data[$len - 1]);
         $padding = substr($data, -$padLen);
@@ -150,41 +148,5 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
         }
 
         return $data;
-    }
-
-    private function decodeContent(): void
-    {
-        $content = $this->inputStream->getContents();
-
-        $file = substr($content, 0, strlen($content) - 10);
-        $mac = substr($content, -10);
-
-        $sign = hash_hmac(
-            'sha256',
-            $this->iv . $file,
-            $this->macKey,
-            true
-        );
-
-
-        if (!hash_equals(substr($sign, 0, 10), $mac)) {
-            throw new WhatsAppDecoratorException('Signature verification failed.');
-        }
-
-        $decryptedContent = openssl_decrypt(
-            $file,
-            'aes-256-cbc',
-            $this->cipherKey,
-            OPENSSL_RAW_DATA,
-            $this->iv,
-        );
-
-        if ($decryptedContent === false) {
-            throw new WhatsAppDecoratorException('Decryption failed.');
-        }
-
-        $this->content = $decryptedContent;
-
-        $this->stream = Utils::streamFor($this->content);
     }
 }
