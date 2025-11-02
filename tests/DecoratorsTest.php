@@ -43,37 +43,40 @@ final class DecoratorsTest extends TestCase
 
         $origContent = file_get_contents(__DIR__ . "/samples/$filename.original");
 
-        for ($i = 0; $i < 150; ++$i) {
+        $lens = [1, 8, 16, 32, 1024, 1024 * 1024];
+
+        foreach ($lens as $len) {
             $content = '';
-            $len = $i + 1;
 
-            $j = 0;
             while (!$decoder->eof()) {
-                try {
-                    $chunk = $decoder->read($len);
-                } catch (\Throwable $e) {
-                    var_dump($len);
-                    var_dump($j);
-                    die();
-                }
-
-                $ch2 = substr($origContent, strlen($content), $len);
-
-                if ($chunk !== $ch2) {
-                    var_dump(bin2hex($chunk));
-                    var_dump(bin2hex($ch2));
-                    var_dump($len);
-                    var_dump($j);
-                    die();
-                }
-
+                $chunk = $decoder->read($len);
                 $content .= $chunk;
-                $j++;
             }
 
             $this->assertEquals($content, $origContent);
             $decoder->rewind();
         }
+    }
+
+    public function testDecoderReadRandLen(): void
+    {
+        $filename = 'AUDIO';
+        $mediaType = WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO;
+        $stream = new LazyOpenStream(__DIR__ . "/samples/$filename.encrypted", 'r');
+        $decoder = new WhatsAppDecryptStreamDecorator(
+            $stream,
+            file_get_contents(__DIR__ . "/samples/$filename.key"),
+            $mediaType
+        );
+
+        $origContent = file_get_contents(__DIR__ . "/samples/$filename.original");
+
+        while (!$decoder->eof()) {
+            $chunk = $decoder->read(rand(1, 1024));
+            $content .= $chunk;
+        }
+
+        $this->assertEquals($content, $origContent);
     }
 
 
@@ -94,7 +97,7 @@ final class DecoratorsTest extends TestCase
         $this->assertEquals($content, $eContent);
     }
 
-    public function testEncoderLength(): void
+    public function testEncoderRead(): void
     {
         $filename = 'AUDIO';
         $mediaType = WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO;
@@ -107,22 +110,40 @@ final class DecoratorsTest extends TestCase
 
         $eContent = file_get_contents(__DIR__ . "/samples/$filename.encrypted");
 
-        for ($i = 0; $i < 150; ++$i) {
-            $content = '';
-            $len = $i + 1;
+        $lens = [1, 8, 16, 32, 1024, 1024 * 1024];
 
-            $j = 0;
+        foreach ($lens as $len) {
+            $content = '';
+
             while (!$coder->eof()) {
                 $chunk = $coder->read($len);
-
-
                 $content .= $chunk;
-                $j++;
             }
 
             $this->assertEquals($content, $eContent);
             $coder->rewind();
         }
+    }
+
+    public function testEncoderReadRandLen(): void
+    {
+        $filename = 'AUDIO';
+        $mediaType = WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO;
+        $stream = new LazyOpenStream(__DIR__ . "/samples/$filename.original", 'r');
+        $coder = new WhatsAppEncryptStreamDecorator(
+            $stream,
+            file_get_contents(__DIR__ . "/samples/$filename.key"),
+            $mediaType
+        );
+
+        $eContent = file_get_contents(__DIR__ . "/samples/$filename.encrypted");
+
+        while (!$coder->eof()) {
+            $chunk = $coder->read(rand(1, 1024));
+            $content .= $chunk;
+        }
+
+        $this->assertEquals($content, $eContent);
     }
 
     public static function dataProvider(): array

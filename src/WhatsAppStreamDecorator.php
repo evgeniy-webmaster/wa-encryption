@@ -24,10 +24,8 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
     protected string $content;
     protected $incHashContext;
 
-    protected StreamInterface|null $stream;
-
     public function __construct(
-        private readonly StreamInterface $inputStream,
+        private readonly StreamInterface $stream,
         private readonly string $encryptionKey,
         string $mediaType
     ) {

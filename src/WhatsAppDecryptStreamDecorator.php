@@ -18,7 +18,7 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
 {
     /**
      *
-     * @param StreamInterface $inputStream   Input stream containing encrypted data.
+     * @param StreamInterface $stream   Input stream containing encrypted data.
      * @param string          $encryptionKey Encryption key used for HMAC verification and decryption.
      * @param string          $mediaType     Media type (e.g., WhatsAppStreamDecorator::MEDIA_TYPE_IMAGE,
      *                                       WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO,
@@ -28,13 +28,11 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
      * @throws WhatsAppDecoratorException If signature verification or decryption fails.
      */
     public function __construct(
-        private readonly StreamInterface $inputStream,
+        private readonly StreamInterface $stream,
         string $encryptionKey,
         string $mediaType
     ) {
-        parent::__construct($this->inputStream, $encryptionKey, $mediaType);
-
-        $this->stream = $inputStream;
+        parent::__construct($this->stream, $encryptionKey, $mediaType);
     }
 
     private string $overBuf = '';
