@@ -38,6 +38,7 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
     }
 
     private string $overBuf = '';
+    private int $cSeek = 0; // current seek
 
     public function eof(): bool
     {
@@ -60,20 +61,25 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
         $this->prevBlock = $this->iv;
         $this->incHashContext = hash_init('sha256', HASH_HMAC, $this->macKey);
         hash_update($this->incHashContext, $this->iv);
+        $this->cSeek = 0;
     }
 
     public function read($length): string
     {
         $obLen = strlen($this->overBuf);
 
+        $nLen = 0;
         if ($obLen < $length) {
             $nLen = $length - strlen($this->overBuf);
-        } else {
-            $nLen = $length;
         }
 
-        $nLen = $nLen + ($nLen % 16 ? 16 - $nLen % 16 : 0);
-        $readLength = $nLen + 16;
+        $readLength = $nLen + ($nLen % 16 ? 16 - $nLen % 16 : 0);
+
+        $this->cSeek += $readLength;
+
+        if ($this->stream->getSize() - $this->cSeek < 16) {
+            $readLength += 11;
+        }
 
         $inBuf = $this->stream->read($readLength);
 
@@ -91,7 +97,7 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
 
         $outBuf = '';
 
-        for ($i = 0; $i <= $readLength - 16; $i += 16) {
+        for ($i = 0; $i < $readLength; $i += 16) {
             $schunk = substr($inBuf, $i, 16);
             $chunk = openssl_decrypt(
                 $schunk,
@@ -106,7 +112,7 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
 
             $chunk = $chunk ^ $this->prevBlock;
 
-            if ($this->stream->eof() && $i >= $readLength - 16) {
+            if ($this->stream->eof() && $i >= $readLength) {
                 $chunk = $this->removePkcs7Padding($chunk);
             }
 

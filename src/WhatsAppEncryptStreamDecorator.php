@@ -64,7 +64,6 @@ final class WhatsAppEncryptStreamDecorator extends WhatsAppStreamDecorator
         }
 
         $readLength = $nLen + ($nLen % 16 ? 16 - $nLen % 16 : 0);
-        //$readLength = $nLen + 16;
 
         $inBuf = $this->stream->read($readLength);
 

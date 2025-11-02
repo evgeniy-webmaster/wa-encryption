@@ -45,11 +45,30 @@ final class DecoratorsTest extends TestCase
 
         for ($i = 0; $i < 150; ++$i) {
             $content = '';
+            $len = $i + 1;
 
+            $j = 0;
             while (!$decoder->eof()) {
-                $len = $i + 1;
-                $chunk = $decoder->read($len);
+                try {
+                    $chunk = $decoder->read($len);
+                } catch (\Throwable $e) {
+                    var_dump($len);
+                    var_dump($j);
+                    die();
+                }
+
+                $ch2 = substr($origContent, strlen($content), $len);
+
+                if ($chunk !== $ch2) {
+                    var_dump(bin2hex($chunk));
+                    var_dump(bin2hex($ch2));
+                    var_dump($len);
+                    var_dump($j);
+                    die();
+                }
+
                 $content .= $chunk;
+                $j++;
             }
 
             $this->assertEquals($content, $origContent);
@@ -96,17 +115,6 @@ final class DecoratorsTest extends TestCase
             while (!$coder->eof()) {
                 $chunk = $coder->read($len);
 
-                /*
-                $ch2 = substr($eContent, strlen($content), $len);
-
-                if ($chunk !== $ch2) {
-                    var_dump(bin2hex($chunk));
-                    var_dump(bin2hex($ch2));
-                    var_dump($len);
-                    var_dump($j);
-                    die();
-                }
-                */
 
                 $content .= $chunk;
                 $j++;
