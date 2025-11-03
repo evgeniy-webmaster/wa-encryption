@@ -36,32 +36,26 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
     }
 
     private string $overBuf = '';
-    private int $cSeek = 0; // current seek
 
+    /**
+     * @inheritDoc
+     */
     public function eof(): bool
     {
         return $this->stream->eof() && strlen($this->overBuf) === 0;
     }
 
-    public function isSeekable(): bool
-    {
-        return false;
-    }
-
-    public function seek($offset, $whence = SEEK_SET): void
+    /**
+     * Not implemented.
+     */
+    public function getSize(): ?int
     {
         throw new \RuntimeException('Not implemented');
     }
 
-    public function rewind(): void
-    {
-        $this->stream->rewind();
-        $this->prevBlock = $this->iv;
-        $this->incHashContext = hash_init('sha256', HASH_HMAC, $this->macKey);
-        hash_update($this->incHashContext, $this->iv);
-        $this->cSeek = 0;
-    }
-
+    /**
+     * @inheritDoc
+     */
     public function read($length): string
     {
         $obLen = strlen($this->overBuf);
@@ -73,9 +67,7 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
 
         $readLength = $nLen + ($nLen % 16 ? 16 - $nLen % 16 : 0);
 
-        $this->cSeek += $readLength;
-
-        if ($this->stream->getSize() - $this->cSeek < 16) {
+        if ($this->stream->getSize() - ($this->stream->tell() + $readLength) < 16) {
             $readLength += 11;
         }
 
@@ -102,13 +94,12 @@ final class WhatsAppDecryptStreamDecorator extends WhatsAppStreamDecorator
                 'aes-256-cbc',
                 $this->cipherKey,
                 OPENSSL_RAW_DATA |  OPENSSL_ZERO_PADDING,
+                $this->prevBlock
             );
 
             if ($chunk === false) {
                 throw new WhatsAppDecoratorException('Decryption failed.');
             }
-
-            $chunk = $chunk ^ $this->prevBlock;
 
             if ($this->stream->eof() && $i >= $readLength) {
                 $chunk = $this->removePkcs7Padding($chunk);

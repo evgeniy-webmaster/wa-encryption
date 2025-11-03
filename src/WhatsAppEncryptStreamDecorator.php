@@ -37,19 +37,28 @@ final class WhatsAppEncryptStreamDecorator extends WhatsAppStreamDecorator
 
     private string $overBuf = '';
 
+    /**
+     * @inheritDoc
+     */
     public function eof(): bool
     {
         return $this->stream->eof() && strlen($this->overBuf) === 0;
     }
 
-    public function rewind(): void
+    /**
+     * @inheritDoc
+     */
+    public function getSize(): ?int
     {
-        $this->stream->rewind();
-        $this->prevBlock = $this->iv;
-        $this->incHashContext = hash_init('sha256', HASH_HMAC, $this->macKey);
-        hash_update($this->incHashContext, $this->iv);
+        $size = $this->stream->getSize();
+        $size = $size + ($size % 16 ? 16 - $size % 16 : 0);
+        $size += 10;
+        return $size;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function read($length): string
     {
         $obLen = strlen($this->overBuf);
@@ -76,13 +85,12 @@ final class WhatsAppEncryptStreamDecorator extends WhatsAppStreamDecorator
                 $chunk = $this->addPkcs7Padding($chunk);
             }
 
-            $chunk = $chunk ^ $this->prevBlock;
-
             $chunk = openssl_encrypt(
                 $chunk,
                 'aes-256-cbc',
                 $this->cipherKey,
                 OPENSSL_RAW_DATA |  OPENSSL_ZERO_PADDING,
+                $this->prevBlock
             );
 
             if ($chunk === false) {

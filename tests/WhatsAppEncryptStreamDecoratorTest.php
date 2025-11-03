@@ -10,76 +10,8 @@ use EW\WaEncryption\WhatsAppStreamDecorator;
 use EW\WaEncryption\WhatsAppEncryptStreamDecorator;
 use EW\WaEncryption\WhatsAppDecryptStreamDecorator;
 
-final class DecoratorsTest extends TestCase
+final class WhatsAppEncryptStreamDecoratorTest extends TestCase
 {
-    /**
-     * @dataProvider dataProvider
-     */
-    public function testDecoderGetContents($filename, $mediaType): void
-    {
-        $stream = new LazyOpenStream(__DIR__ . "/samples/$filename.encrypted", 'r');
-        $decoder = new WhatsAppDecryptStreamDecorator(
-            $stream,
-            file_get_contents(__DIR__ . "/samples/$filename.key"),
-            $mediaType
-        );
-
-        $origContent = file_get_contents(__DIR__ . "/samples/$filename.original");
-        $content = $decoder->getContents();
-        $this->assertEquals($content, $origContent);
-    }
-
-
-    public function testDecoderRead(): void
-    {
-        $filename = 'AUDIO';
-        $mediaType = WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO;
-        $stream = new LazyOpenStream(__DIR__ . "/samples/$filename.encrypted", 'r');
-        $decoder = new WhatsAppDecryptStreamDecorator(
-            $stream,
-            file_get_contents(__DIR__ . "/samples/$filename.key"),
-            $mediaType
-        );
-
-        $origContent = file_get_contents(__DIR__ . "/samples/$filename.original");
-
-        $lens = [1, 8, 16, 32, 1024, 1024 * 1024];
-
-        foreach ($lens as $len) {
-            $content = '';
-
-            while (!$decoder->eof()) {
-                $chunk = $decoder->read($len);
-                $content .= $chunk;
-            }
-
-            $this->assertEquals($content, $origContent);
-            $decoder->rewind();
-        }
-    }
-
-    public function testDecoderReadRandLen(): void
-    {
-        $filename = 'AUDIO';
-        $mediaType = WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO;
-        $stream = new LazyOpenStream(__DIR__ . "/samples/$filename.encrypted", 'r');
-        $decoder = new WhatsAppDecryptStreamDecorator(
-            $stream,
-            file_get_contents(__DIR__ . "/samples/$filename.key"),
-            $mediaType
-        );
-
-        $origContent = file_get_contents(__DIR__ . "/samples/$filename.original");
-
-        while (!$decoder->eof()) {
-            $chunk = $decoder->read(rand(1, 1024));
-            $content .= $chunk;
-        }
-
-        $this->assertEquals($content, $origContent);
-    }
-
-
     /**
      * @dataProvider dataProvider
      */
@@ -137,6 +69,8 @@ final class DecoratorsTest extends TestCase
         );
 
         $eContent = file_get_contents(__DIR__ . "/samples/$filename.encrypted");
+
+        $content = '';
 
         while (!$coder->eof()) {
             $chunk = $coder->read(rand(1, 1024));

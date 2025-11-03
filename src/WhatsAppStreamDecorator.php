@@ -24,6 +24,8 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
     protected string $content;
     protected $incHashContext;
 
+    protected int $cSeek = 0;
+
     public function __construct(
         private readonly StreamInterface $stream,
         private readonly string $encryptionKey,
@@ -43,5 +45,73 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
         $this->prevBlock = $this->iv;
         $this->incHashContext = hash_init('sha256', HASH_HMAC, $this->macKey);
         hash_update($this->incHashContext, $this->iv);
+    }
+
+
+    /**
+     * @inheritDoc
+     */
+    public function __toString(): string
+    {
+        try {
+            $this->rewind();
+            return $this->getContents();
+        } catch (\Throwable $e) {
+            if (\PHP_VERSION_ID >= 70400) {
+                throw $e;
+            }
+            trigger_error(sprintf('%s::__toString exception: %s', self::class, (string) $e), E_USER_ERROR);
+
+            return '';
+        }
+    }
+
+    public function tell(): int
+    {
+        return $this->cSeek;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isSeekable(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Not implemented.
+     */
+    public function seek($offset, $whence = SEEK_SET): void
+    {
+        throw new \RuntimeException('Not implemented');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isWritable(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Not implemented.
+     */
+    public function write($string): int
+    {
+        throw new \RuntimeException('Not implemented');
+    }
+
+    /**
+     * Seek to the beginning of the stream.
+     */
+    public function rewind(): void
+    {
+        $this->stream->rewind();
+        $this->prevBlock = $this->iv;
+        $this->incHashContext = hash_init('sha256', HASH_HMAC, $this->macKey);
+        hash_update($this->incHashContext, $this->iv);
+        $this->cSeek = 0;
     }
 }
