@@ -51,6 +51,7 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function __toString(): string
     {
         try {
@@ -69,6 +70,7 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function tell(): int
     {
         return $this->cSeek;
@@ -77,6 +79,7 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function isSeekable(): bool
     {
         return false;
@@ -85,6 +88,7 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
     /**
      * Not implemented.
      */
+    #[\Override]
     public function seek($offset, $whence = SEEK_SET): void
     {
         throw new \RuntimeException('Not implemented');
@@ -93,6 +97,7 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function isWritable(): bool
     {
         return false;
@@ -101,6 +106,7 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
     /**
      * Not implemented.
      */
+    #[\Override]
     public function write($string): int
     {
         throw new \RuntimeException('Not implemented');
@@ -109,6 +115,7 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
     /**
      * Seek to the beginning of the stream.
      */
+    #[\Override]
     public function rewind(): void
     {
         $this->stream->rewind();
@@ -121,6 +128,7 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
     /**
      * @inheritdoc
      */
+    #[\Override]
     public function getMetadata(?string $key = null)
     {
         throw new \RuntimeException('Not implemented');

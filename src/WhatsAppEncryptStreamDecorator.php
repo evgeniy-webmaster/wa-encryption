@@ -40,6 +40,7 @@ final class WhatsAppEncryptStreamDecorator extends WhatsAppStreamDecorator
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function rewind(): void
     {
         parent::rewind();
@@ -49,6 +50,7 @@ final class WhatsAppEncryptStreamDecorator extends WhatsAppStreamDecorator
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function eof(): bool
     {
         return $this->stream->eof() && strlen($this->overBuf) === 0;
@@ -57,6 +59,7 @@ final class WhatsAppEncryptStreamDecorator extends WhatsAppStreamDecorator
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getSize(): ?int
     {
         $size = $this->stream->getSize();
@@ -68,6 +71,7 @@ final class WhatsAppEncryptStreamDecorator extends WhatsAppStreamDecorator
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function read($length): string
     {
         $obLen = strlen($this->overBuf);
