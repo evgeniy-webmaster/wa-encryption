@@ -40,6 +40,15 @@ final class WhatsAppEncryptStreamDecorator extends WhatsAppStreamDecorator
     /**
      * @inheritDoc
      */
+    public function rewind(): void
+    {
+        parent::rewind();
+        $this->overBuf = '';
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function eof(): bool
     {
         return $this->stream->eof() && strlen($this->overBuf) === 0;
@@ -118,10 +127,11 @@ final class WhatsAppEncryptStreamDecorator extends WhatsAppStreamDecorator
 
         if ($allOutLen >= $length) {
             $this->overBuf = substr($allOutBuf, $length, $allOutLen - $length);
+            $this->cSeek += $length;
             return substr($allOutBuf, 0, $length);
         }
-
         $this->overBuf = '';
+        $this->cSeek += strlen($allOutBuf);
         return $allOutBuf;
     }
 

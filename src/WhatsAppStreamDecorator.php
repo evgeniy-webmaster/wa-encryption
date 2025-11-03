@@ -66,6 +66,9 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     public function tell(): int
     {
         return $this->cSeek;
@@ -113,5 +116,13 @@ abstract class WhatsAppStreamDecorator implements StreamInterface
         $this->incHashContext = hash_init('sha256', HASH_HMAC, $this->macKey);
         hash_update($this->incHashContext, $this->iv);
         $this->cSeek = 0;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getMetadata(?string $key = null)
+    {
+        throw new \RuntimeException('Not implemented');
     }
 }

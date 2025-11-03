@@ -13,9 +13,9 @@ use EW\WaEncryption\WhatsAppDecryptStreamDecorator;
 final class WhatsAppEncryptStreamDecoratorTest extends TestCase
 {
     /**
-     * @dataProvider dataProvider
+     * @dataProvider fileMediaType
      */
-    public function testEncoder($filename, $mediaType): void
+    public function testEncoder(string $filename, string $mediaType): void
     {
         $stream = new LazyOpenStream(__DIR__ . "/samples/$filename.original", 'r');
         $coder = new WhatsAppEncryptStreamDecorator(
@@ -29,7 +29,10 @@ final class WhatsAppEncryptStreamDecoratorTest extends TestCase
         $this->assertEquals($content, $eContent);
     }
 
-    public function testEncoderRead(): void
+    /**
+     * @dataProvider readLengths
+     */
+    public function testEncoderRead(int $len): void
     {
         $filename = 'AUDIO';
         $mediaType = WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO;
@@ -42,19 +45,15 @@ final class WhatsAppEncryptStreamDecoratorTest extends TestCase
 
         $eContent = file_get_contents(__DIR__ . "/samples/$filename.encrypted");
 
-        $lens = [1, 8, 16, 32, 1024, 1024 * 1024];
 
-        foreach ($lens as $len) {
-            $content = '';
+        $content = '';
 
-            while (!$coder->eof()) {
-                $chunk = $coder->read($len);
-                $content .= $chunk;
-            }
-
-            $this->assertEquals($content, $eContent);
-            $coder->rewind();
+        while (!$coder->eof()) {
+            $chunk = $coder->read($len);
+            $content .= $chunk;
         }
+
+        $this->assertEquals($content, $eContent);
     }
 
     public function testEncoderReadRandLen(): void
@@ -80,12 +79,97 @@ final class WhatsAppEncryptStreamDecoratorTest extends TestCase
         $this->assertEquals($content, $eContent);
     }
 
-    public static function dataProvider(): array
+    public static function fileMediaType(): array
     {
         return [
             ['AUDIO', WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO],
             ['VIDEO', WhatsAppStreamDecorator::MEDIA_TYPE_VIDEO],
             ['IMAGE', WhatsAppStreamDecorator::MEDIA_TYPE_IMAGE],
         ];
+    }
+
+    public static function readLengths(): array
+    {
+        return array_fill(0, 5,
+            [1, 8, 16, 50, 1024, 1024 * 1024]
+        );
+    }
+
+    public function testEncoderTell(): void
+    {
+        $filename = 'AUDIO';
+        $mediaType = WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO;
+        $stream = new LazyOpenStream(__DIR__ . "/samples/$filename.original", 'r');
+        $coder = new WhatsAppEncryptStreamDecorator(
+            $stream,
+            file_get_contents(__DIR__ . "/samples/$filename.key"),
+            $mediaType
+        );
+
+        $coder->read(1000);
+
+        $this->assertEquals(1000, $coder->tell());
+    }
+
+    public function testEncoderEof(): void
+    {
+        $filename = 'AUDIO';
+        $mediaType = WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO;
+        $stream = new LazyOpenStream(__DIR__ . "/samples/$filename.original", 'r');
+        $coder = new WhatsAppEncryptStreamDecorator(
+            $stream,
+            file_get_contents(__DIR__ . "/samples/$filename.key"),
+            $mediaType
+        );
+
+        $coder->getContents();
+        $this->assertEquals(true, $coder->eof());
+    }
+
+    public function testEncoderToString(): void
+    {
+        $filename = 'AUDIO';
+        $mediaType = WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO;
+        $stream = new LazyOpenStream(__DIR__ . "/samples/$filename.original", 'r');
+        $coder = new WhatsAppEncryptStreamDecorator(
+            $stream,
+            file_get_contents(__DIR__ . "/samples/$filename.key"),
+            $mediaType
+        );
+        $eContent = file_get_contents(__DIR__ . "/samples/$filename.encrypted");
+
+        $this->assertEquals($eContent, $coder);
+    }
+
+    public function testEncoderGetSize(): void
+    {
+        $filename = 'AUDIO';
+        $mediaType = WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO;
+        $stream = new LazyOpenStream(__DIR__ . "/samples/$filename.original", 'r');
+        $coder = new WhatsAppEncryptStreamDecorator(
+            $stream,
+            file_get_contents(__DIR__ . "/samples/$filename.key"),
+            $mediaType
+        );
+        $size = filesize(__DIR__ . "/samples/$filename.encrypted");
+
+        $this->assertEquals($size, $coder->getSize());
+    }
+
+    public function testEncoderRewind(): void
+    {
+        $filename = 'AUDIO';
+        $mediaType = WhatsAppStreamDecorator::MEDIA_TYPE_AUDIO;
+        $stream = new LazyOpenStream(__DIR__ . "/samples/$filename.original", 'r');
+        $coder = new WhatsAppEncryptStreamDecorator(
+            $stream,
+            file_get_contents(__DIR__ . "/samples/$filename.key"),
+            $mediaType
+        );
+        $eContent = file_get_contents(__DIR__ . "/samples/$filename.encrypted");
+
+        $this->assertEquals($eContent, $coder->read(strlen($eContent)));
+        $coder->rewind();
+        $this->assertEquals($eContent, $coder->read(strlen($eContent)));
     }
 }
